@@ -4,12 +4,13 @@
 
 ## Current Focus
 
-Integration test suite complete — 45 end-to-end tests validating all COBOL test cases (TC01–TC41) via the REST API. All 221 tests pass.
+Migration validation complete. 4 docs consolidated into `docs/validacao-cobol-java.md`. Remaining open items: FY2020 test rates (P-02), COBOL baseline capture (P-01), YAML audit FY2016–FY2019 (P-03).
 
 ## Decisions
 
 | Date | Decision | Context |
 |------|----------|---------|
+| 2026-04-14 | Consolidated 4 validation docs into `validacao-cobol-java.md` | Removed: analise-casos-teste, comparativo-cobol-java, open-items-to-close, plano-execucao-casos-teste |
 | 2026-04-14 | Test-specific PROVFILE-TEST with multi-era records | Production PROVFILE only had FY2019+ records; older FYs needed provider entries effective from 1998 and 2005 |
 | 2026-04-14 | 12 slot-mismatch cases use Java-correct expected values | COBOL routes by slot position (REV1→0651); Java routes by code type — different but correct behavior |
 | 2026-04-14 | Payment tolerance ±$0.02 for integration tests | Accommodates rounding differences across the full pipeline (wage index × rate × units) |
