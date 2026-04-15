@@ -117,7 +117,6 @@ Ajustes aplicáveis:
 | [hospice-pricer-cobol/README.md](hospice-pricer-cobol/README.md) | Guia completo do módulo COBOL |
 | [hospice-pricer-api/README.md](hospice-pricer-api/README.md) | Guia completo da API Java |
 | [hospice-pricer-cobol/docs/regras-negocio-HOSPR210-PricerModule.md](hospice-pricer-cobol/docs/regras-negocio-HOSPR210-PricerModule.md) | Regras de negócio detalhadas |
-| [hospice-pricer-cobol/docs/analise-casos-teste.md](hospice-pricer-cobol/docs/analise-casos-teste.md) | Análise dos casos de teste |
-| [hospice-pricer-cobol/docs/plano-execucao-casos-teste.md](hospice-pricer-cobol/docs/plano-execucao-casos-teste.md) | Plano de expansão de testes |
+| [hospice-pricer-cobol/docs/validacao-cobol-java.md](hospice-pricer-cobol/docs/validacao-cobol-java.md) | Validação COBOL × Java — status, cobertura, itens pendentes |
 | [.specs/project/PROJECT.md](.specs/project/PROJECT.md) | Visão, objetivos e escopo do projeto |
 | [.specs/project/ROADMAP.md](.specs/project/ROADMAP.md) | Roadmap e status das features |

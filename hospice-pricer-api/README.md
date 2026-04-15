@@ -246,7 +246,7 @@ mvn verify
 | Suite | Tests | Description |
 |-------|-------|-------------|
 | `CobolParityIntegrationTest` | 45 | End-to-end: 45 COBOL test cases (TC01–TC41) through the full REST API pipeline with real CBSA/MSA wage indexes; tolerance ±$0.02 |
-| `CobolParityRegressionTest` | 41 | Unit-level: 1:1 parity checks against HOSPR210/HOSDR210 calculations across all FY strategies; tolerance ±$0.01 |
+| `CobolParityRegressionTest` | 40 | Unit-level: 1:1 parity checks against HOSPR210/HOSDR210 calculations across all FY strategies; tolerance ±$0.01 |
 | `StrategyTest` | | Unit tests for each pricing strategy (Simple, Transition, Modern, Full) |
 | `PaymentCalculatorTest` | | Wage index application and rate multiplication |
 | `RhcSplitCalculatorTest` | | FY2016.1+ high/low day boundary calculation |
@@ -291,3 +291,4 @@ hospice-pricer-api/
 - **HOSDR210** — Original COBOL driver module (997 lines, `build/HOSDR210.cbl`)
 - **HOSPRATE** — Payment rates copybook (`build/copy/HOSPRATE.cpy`)
 - **docs/regras-negocio-HOSPR210-PricerModule.md** — Detailed business rules documentation (Portuguese)
+- **docs/validacao-cobol-java.md** — COBOL × Java validation report: test coverage, discrepancies, pending items

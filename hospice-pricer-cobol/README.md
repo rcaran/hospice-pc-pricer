@@ -56,9 +56,7 @@ hospice-pricer-cobol/
 │   └── gnucobol32/     # GnuCOBOL 3.2 (Windows x86-64)
 └── docs/
     ├── regras-negocio-HOSPR210-PricerModule.md
-    ├── analise-casos-teste.md
-    ├── plano-execucao-casos-teste.md
-    └── open-items-to-close.md
+    └── validacao-cobol-java.md
 ```
 
 ---
@@ -215,7 +213,5 @@ Arquivos de saída: `RATEFILE` (`RECFM=FB, LRECL=315`) e relatório SAS (`RECFM=
 | Documento | Descrição |
 |-----------|-----------|
 | [docs/regras-negocio-HOSPR210-PricerModule.md](docs/regras-negocio-HOSPR210-PricerModule.md) | Regras de negócio detalhadas do HOSPR210 |
-| [docs/analise-casos-teste.md](docs/analise-casos-teste.md) | Análise dos casos de teste existentes |
-| [docs/plano-execucao-casos-teste.md](docs/plano-execucao-casos-teste.md) | Plano de expansão dos casos de teste |
-| [docs/open-items-to-close.md](docs/open-items-to-close.md) | Itens em aberto |
+| [docs/validacao-cobol-java.md](docs/validacao-cobol-java.md) | Validação COBOL × Java — status, cobertura, itens pendentes |
 | [test/README.md](test/README.md) | Guia do ambiente de teste local |
