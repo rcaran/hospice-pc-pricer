@@ -231,8 +231,11 @@ The router supports 27 fiscal year periods, including mid-year updates:
 # Run all tests
 mvn test
 
-# Run only the COBOL parity regression suite
+# Run only the COBOL parity regression suite (unit-level)
 mvn test -Dtest=CobolParityRegressionTest
+
+# Run only the COBOL parity integration tests (end-to-end, 45 test cases)
+mvn test -Dtest=CobolParityIntegrationTest
 
 # Generate JaCoCo coverage report (output: target/site/jacoco/index.html)
 mvn verify
@@ -240,18 +243,19 @@ mvn verify
 
 ### Test Suites
 
-| Suite | Description |
-|-------|-------------|
-| `CobolParityRegressionTest` | 1:1 parity checks against HOSPR210/HOSDR210 calculations across all FY strategies; tolerance ±$0.01 |
-| `StrategyTest` | Unit tests for each pricing strategy (Simple, Transition, Modern, Full) |
-| `PaymentCalculatorTest` | Wage index application and rate multiplication |
-| `RhcSplitCalculatorTest` | FY2016.1+ high/low day boundary calculation |
-| `SiaCalculatorTest` | End-of-life SIA per-day add-on computation |
-| `FiscalYearRouterTest` | Date-to-FY routing coverage including mid-year boundaries |
-| `ValidationServiceTest` | Input validation return code coverage |
-| `FileParserTest` | Provider and wage index file parsing |
-| `RateProviderIntegrationTest` | YAML rate file loading and validation |
-| `HospicePricerControllerTest` | REST layer request/response mapping |
+| Suite | Tests | Description |
+|-------|-------|-------------|
+| `CobolParityIntegrationTest` | 45 | End-to-end: 45 COBOL test cases (TC01–TC41) through the full REST API pipeline with real CBSA/MSA wage indexes; tolerance ±$0.02 |
+| `CobolParityRegressionTest` | 41 | Unit-level: 1:1 parity checks against HOSPR210/HOSDR210 calculations across all FY strategies; tolerance ±$0.01 |
+| `StrategyTest` | | Unit tests for each pricing strategy (Simple, Transition, Modern, Full) |
+| `PaymentCalculatorTest` | | Wage index application and rate multiplication |
+| `RhcSplitCalculatorTest` | | FY2016.1+ high/low day boundary calculation |
+| `SiaCalculatorTest` | | End-of-life SIA per-day add-on computation |
+| `FiscalYearRouterTest` | | Date-to-FY routing coverage including mid-year boundaries |
+| `ValidationServiceTest` | | Input validation return code coverage |
+| `FileParserTest` | | Provider and wage index file parsing |
+| `RateProviderIntegrationTest` | | YAML rate file loading and validation |
+| `HospicePricerControllerTest` | | REST layer request/response mapping |
 
 ## Project Structure
 
@@ -269,13 +273,16 @@ hospice-pricer-api/
 │   ├── application.yaml
 │   ├── data/                   # CBSA2021, MSAFILE, PROVFILE reference files
 │   └── rates/                  # fy1998.yaml … fy2021.yaml payment rate configs
-└── src/test/java/com/cms/hospice/
-    ├── api/
-    ├── config/
-    ├── data/
-    ├── pricing/
-    ├── regression/             # CobolParityRegressionTest
-    └── service/
+└── src/test/
+    ├── java/com/cms/hospice/
+    │   ├── api/
+    │   ├── config/
+    │   ├── data/
+    │   ├── pricing/
+    │   ├── regression/         # CobolParityRegressionTest + CobolParityIntegrationTest
+    │   └── service/
+    └── resources/
+        └── data/               # PROVFILE-TEST (multi-era provider records for integration tests)
 ```
 
 ## Related

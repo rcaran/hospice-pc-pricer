@@ -1,4 +1,6 @@
-# Integration Tests — 45 COBOL Parity Test Cases
+# Integration Tests — 45 COBOL Parity Test Cases ✅
+
+**Status:** Complete (2026-04-14) — All 45 tests pass, 221 total tests green.
 
 ## Objective
 
@@ -57,6 +59,7 @@ The Java API correctly processes them, so expected values differ from RATEFILE.
 | 10-11 | TC30-TC41          | Representative FYs + CHC    | 13    |
 |       |                    | **Total**                   | **45**|
 
-## File
+## Files
 
-`src/test/java/com/cms/hospice/regression/CobolParityIntegrationTest.java`
+- `src/test/java/com/cms/hospice/regression/CobolParityIntegrationTest.java` — 45 tests in 8 nested `@Nested` classes
+- `src/test/resources/data/PROVFILE-TEST` — Extended provider file with records from 1998/2005/2015/2019/2020

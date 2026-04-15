@@ -17,33 +17,22 @@ Fixed 3 critical bugs + 1 infrastructure gap in `test/GENDATA.cbl` that were inv
 
 Codebase analysis documented in `.specs/codebase/` (7 docs).
 
+### Integration Tests — 45 COBOL Parity Test Cases ✅
+
+**Spec:** [.specs/features/integration-tests-45-cases/spec.md](../features/integration-tests-45-cases/spec.md)
+
+Created full end-to-end integration test suite validating all 45 COBOL test cases (TC01–TC41) through the Spring Boot REST API pipeline.
+
+- `CobolParityIntegrationTest.java` — 45 tests across 8 nested phases
+- Test-specific `PROVFILE-TEST` with provider records covering FY1998–FY2021
+- Real CBSA/MSA wage index lookups (no mocked data)
+- Payment amount tolerance: ±$0.02
+- 12 slot-mismatch cases validated with hand-calculated Java-correct values
+- All 221 tests pass (45 integration + 176 existing)
+
 ---
 
 ## Planned
-
-### Validate Test Output (Next)
-
-**Priority:** P1
-**Status:** Not started
-
-Verify all 40 test cases (TC01–TC36 + TC08B) produce expected payment amounts and return codes against business rules in `docs/regras-negocio-HOSPR210-PricerModule.md`. Includes:
-
-- Confirm REQ-04 (WI=0 for TC01–TC07) is resolved by CBSAFILE lookup override
-- Spot-check QIP-reduced test cases (TC05, TC17–TC20, TC25–TC26) against expected rates
-- Verify pre-FY2006 test cases (TC09, TC29A/B, TC30–TC32) reach pricer with correct MSA wage index
-
-### Expand Test Coverage (Future)
-
-**Priority:** P2
-**Status:** Not started
-
-The test plan (`docs/plano-execucao-casos-teste.md`) defines 38 additional test cases (TC08–TC46) covering:
-
-- P1: Wage index validation, input validation (RTC 10/20), RHC 60-day logic
-- P2: CHC ≥32 units, QIP variants (CHC/IRC/GIC), SIA edge cases, multi-revenue-code bills
-- P3: FY boundary transitions, representative FYs across the FY1998–FY2021 range
-
-Note: TC08–TC36 + TC08B are already implemented in GENDATA.cbl. TC37–TC46 are referenced in the plan total but not yet specified.
 
 ### Documentation Maintenance (Ongoing)
 
@@ -51,10 +40,10 @@ Keep `.specs/codebase/`, `.specs/project/`, and `docs/` synchronized with code c
 
 ---
 
-### COBOL-to-Java Migration — PLANNED
+### COBOL-to-Java Migration — COMPLETE ✅
 
 **Priority:** P1
-**Status:** Planning complete — awaiting execution
+**Status:** Implemented and validated
 
 **Goal:** Convert the entire Hospice PC Pricer from COBOL to a Java 21 + Spring Boot 4 REST API with full functional parity and comprehensive test coverage.
 
@@ -64,9 +53,9 @@ Keep `.specs/codebase/`, `.specs/project/`, and `docs/` synchronized with code c
 
 **Scope:**
 - 36 tasks across 8 phases
-- 26 YAML rate config files (FY1998–FY2021 + mid-year variants)
-- ~30 Java source files, ~15 test files
-- 40 COBOL parity regression tests (TC01–TC36 + TC08B)
+- 27 YAML rate config files (FY1998–FY2021 + mid-year variants)
+- 31 Java source files, 11 test files (221 total test methods)
+- 45 COBOL parity integration tests + 41 unit regression tests
 - REST API: POST /api/v1/hospice/price
 - Strategy pattern replacing 24 duplicated FY blocks
 - All rates externalized to YAML (no hard-coded values)
