@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.cms.hospice.regression.CobolParityIntegrationTest$Phase0_BaseFY2021
+-------------------------------------------------------------------------------
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.747 s -- in com.cms.hospice.regression.CobolParityIntegrationTest$Phase0_BaseFY2021

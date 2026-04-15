@@ -23,27 +23,31 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * End-to-end COBOL Parity Integration Tests.
  *
  * Validates all 45 test cases (TC01–TC41) through the full Spring Boot
- * pipeline: HTTP → Controller → DriverService → WageIndex lookup → FY Router → Strategy.
+ * pipeline: HTTP → Controller → DriverService → WageIndex lookup → FY Router →
+ * Strategy.
  *
- * Expected values are derived from the COBOL RATEFILE output using real CBSA/MSA
+ * Expected values are derived from the COBOL RATEFILE output using real
+ * CBSA/MSA
  * wage indexes from the reference files (CBSA2021, MSAFILE, PROVFILE).
  *
  * Providers:
- *   - 341234: CBSA 16740 (Charlotte NC)
- *   - 341235: CBSA 35614 (New York metro)
- *   - 341236: CBSA 10180 (Abilene TX)
+ * - 341234: CBSA 16740 (Charlotte NC)
+ * - 341235: CBSA 35614 (New York metro)
+ * - 341236: CBSA 10180 (Abilene TX)
  *
  * Note: The COBOL pricer routes by slot position (REV1→0651, REV2→0652, etc.).
- * The Java API routes by revenue code type. For 12 test cases where COBOL placed
+ * The Java API routes by revenue code type. For 12 test cases where COBOL
+ * placed
  * non-RHC codes in REV1 slot (producing $0/RTC=00), this test validates the
- * correct Java behavior with hand-calculated expected values using real wage indexes.
+ * correct Java behavior with hand-calculated expected values using real wage
+ * indexes.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource(properties = {
         "hospice.data.cbsa-file=classpath:data/CBSA2021",
         "hospice.data.msa-file=classpath:data/MSAFILE",
-        "hospice.data.provider-file=classpath:data/PROVFILE"
+        "hospice.data.provider-file=classpath:data/PROVFILE-TEST"
 })
 class CobolParityIntegrationTest {
 

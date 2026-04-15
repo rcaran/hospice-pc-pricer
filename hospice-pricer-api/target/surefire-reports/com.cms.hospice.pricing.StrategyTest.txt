@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.cms.hospice.pricing.StrategyTest
 -------------------------------------------------------------------------------
-Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.040 s -- in com.cms.hospice.pricing.StrategyTest
+Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.066 s -- in com.cms.hospice.pricing.StrategyTest
