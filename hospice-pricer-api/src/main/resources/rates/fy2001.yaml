@@ -1,0 +1,22 @@
+# FY2001 Hospice Payment Rates
+# Effective: 2000-10-01 through 2001-03-31
+# Source: HOSPR210 2001-PROCESS-DATA paragraph
+
+fiscalYear: FY2001
+
+rates:
+  rhcHighLs: 69.97
+  rhcHighNls: 31.87
+  chcLs: 408.42
+  chcNls: 185.99
+  ircLs: 57.03
+  ircNls: 48.32
+  gicLs: 289.99
+  gicNls: 163.05
+
+flags:
+  hasQip: false
+  has60DaySplit: false
+  hasSia: false
+  chcIn15MinUnits: false
+  hasMinChc8Hours: true

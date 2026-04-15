@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PricingRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Hospice PC Pricer API</a> &gt; <a href="index.source.html" class="el_package">com.cms.hospice.api</a> &gt; <span class="el_source">PricingRequest.java</span></div><h1>PricingRequest.java</h1><pre class="source lang-java linenums">package com.cms.hospice.api;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
+
+import java.util.List;
+
+/**
+ * Inbound JSON request for hospice claim pricing.
+ * All string codes are trimmed and upper-cased by the controller before use.
+ */
+<span class="fc" id="L12">public record PricingRequest(</span>
+        @NotBlank String providerNumber,
+
+        @NotBlank String npi,
+
+        /** Claim FROM date, format YYYYMMDD. */
+        @NotBlank @Pattern(regexp = &quot;\\d{8}&quot;) String fromDate,
+
+        /** Admission date, format YYYYMMDD. Required for FY2016.1+ split. */
+        @Pattern(regexp = &quot;\\d{8}&quot;) String admissionDate,
+
+        /**
+         * Provider CBSA code (5 digits). Used for claims ≥ 2008-01-01;
+         * provider record's CBSA is used for 2006–2007 claims.
+         */
+        String providerCbsa,
+
+        /** Beneficiary CBSA (or MSA for pre-2006) code. */
+        String beneficiaryCbsa,
+
+        /** Prior RHC benefit days before service date (BILL-NA-ADD-ON-DAY1-UNITS). */
+        @Min(0) @Max(9999) int priorBenefitDays,
+
+        /** Second prior benefit days field (BILL-NA-ADD-ON-DAY2-UNITS). */
+        @Min(0) @Max(9999) int priorBenefitDays2,
+
+        /** EOL SIA add-on units for up to 7 days (15-min units, max 7 elements). */
+        List&lt;@Min(0) @Max(99) Integer&gt; eolAddOnDayUnits,
+
+        /** QIP indicator: &quot;1&quot; = QIP applies, &quot; &quot; or null = no QIP. */
+        String qipIndicator,
+
+        /** Revenue line items (1–4 items, each with revenue code, HCPC, DOS, units). */
+        @NotEmpty @Size(max = 4) @Valid List&lt;LineItemRequest&gt; lineItems) {
+<span class="fc" id="L46">    public record LineItemRequest(</span>
+            @NotBlank @Pattern(regexp = &quot;0651|0652|0655|0656&quot;) String revenueCode,
+
+            String hcpcCode,
+
+            /** Date of service, format YYYYMMDD. */
+            @Pattern(regexp = &quot;\\d{8}&quot;) String dateOfService,
+
+            @Min(0) @Max(9999999) int units) {
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

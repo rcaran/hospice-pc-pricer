@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FiscalYearRates.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Hospice PC Pricer API</a> &gt; <a href="index.source.html" class="el_package">com.cms.hospice.model</a> &gt; <span class="el_source">FiscalYearRates.java</span></div><h1>FiscalYearRates.java</h1><pre class="source lang-java linenums">package com.cms.hospice.model;
+
+import java.math.BigDecimal;
+
+/**
+ * All rate constants for a single fiscal year period.
+ * For FY1998-FY2015: rhcHighLs/rhcHighNls == rhcLowLs/rhcLowNls (single RHC
+ * rate, no split).
+ * For FY2016.1+: HIGH and LOW are distinct rates.
+ */
+<span class="fc" id="L11">public record FiscalYearRates(</span>
+        String fiscalYear,
+
+        // RHC rates — called &quot;HIGH&quot; for FY2016.1+ split; used as single rate otherwise
+        BigDecimal rhcHighLs,
+        BigDecimal rhcHighNls,
+        // RHC LOW (only meaningful when has60DaySplit = true)
+        BigDecimal rhcLowLs,
+        BigDecimal rhcLowNls,
+
+        // CHC rates
+        BigDecimal chcLs,
+        BigDecimal chcNls,
+
+        // IRC rates
+        BigDecimal ircLs,
+        BigDecimal ircNls,
+
+        // GIC rates
+        BigDecimal gicLs,
+        BigDecimal gicNls,
+
+        // QIP variants (null/same as standard for pre-FY2014)
+        BigDecimal rhcHighLsQ,
+        BigDecimal rhcHighNlsQ,
+        BigDecimal rhcLowLsQ,
+        BigDecimal rhcLowNlsQ,
+        BigDecimal chcLsQ,
+        BigDecimal chcNlsQ,
+        BigDecimal ircLsQ,
+        BigDecimal ircNlsQ,
+        BigDecimal gicLsQ,
+        BigDecimal gicNlsQ,
+
+        // Feature flags
+        boolean hasQip, // FY2014+
+        boolean has60DaySplit, // FY2016.1+
+        boolean hasSia, // FY2016.1+
+        boolean chcIn15MinUnits, // FY2007.1+
+        boolean hasMinChc8Hours // FY1998-FY2007 only
+) {
+    /** Returns the effective RHC HIGH LS (or single-rate LS if no split). */
+    public BigDecimal effectiveRhcHighLs(boolean qip) {
+<span class="pc bpc" id="L54" title="1 of 4 branches missed.">        return (qip &amp;&amp; hasQip) ? rhcHighLsQ : rhcHighLs;</span>
+    }
+
+    public BigDecimal effectiveRhcHighNls(boolean qip) {
+<span class="pc bpc" id="L58" title="1 of 4 branches missed.">        return (qip &amp;&amp; hasQip) ? rhcHighNlsQ : rhcHighNls;</span>
+    }
+
+    public BigDecimal effectiveRhcLowLs(boolean qip) {
+<span class="pc bpc" id="L62" title="1 of 4 branches missed.">        return (qip &amp;&amp; hasQip) ? rhcLowLsQ : rhcLowLs;</span>
+    }
+
+    public BigDecimal effectiveRhcLowNls(boolean qip) {
+<span class="pc bpc" id="L66" title="1 of 4 branches missed.">        return (qip &amp;&amp; hasQip) ? rhcLowNlsQ : rhcLowNls;</span>
+    }
+
+    public BigDecimal effectiveChcLs(boolean qip) {
+<span class="pc bpc" id="L70" title="1 of 4 branches missed.">        return (qip &amp;&amp; hasQip) ? chcLsQ : chcLs;</span>
+    }
+
+    public BigDecimal effectiveChcNls(boolean qip) {
+<span class="pc bpc" id="L74" title="1 of 4 branches missed.">        return (qip &amp;&amp; hasQip) ? chcNlsQ : chcNls;</span>
+    }
+
+    public BigDecimal effectiveIrcLs(boolean qip) {
+<span class="pc bpc" id="L78" title="1 of 4 branches missed.">        return (qip &amp;&amp; hasQip) ? ircLsQ : ircLs;</span>
+    }
+
+    public BigDecimal effectiveIrcNls(boolean qip) {
+<span class="pc bpc" id="L82" title="1 of 4 branches missed.">        return (qip &amp;&amp; hasQip) ? ircNlsQ : ircNls;</span>
+    }
+
+    public BigDecimal effectiveGicLs(boolean qip) {
+<span class="pc bpc" id="L86" title="1 of 4 branches missed.">        return (qip &amp;&amp; hasQip) ? gicLsQ : gicLs;</span>
+    }
+
+    public BigDecimal effectiveGicNls(boolean qip) {
+<span class="pc bpc" id="L90" title="1 of 4 branches missed.">        return (qip &amp;&amp; hasQip) ? gicNlsQ : gicNls;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,33 @@
+# FY2014 Hospice Payment Rates
+# Effective: 2013-10-01 through 2014-09-30
+# First FY with QIP reduction
+# Source: HOSPR210 2014-APPLY-NO-QIP and 2014-APPLY-QIP paragraphs
+
+fiscalYear: FY2014
+
+rates:
+  rhcHighLs: 107.23
+  rhcHighNls: 48.83
+  chcLs: 625.80
+  chcNls: 284.98
+  ircLs: 87.38
+  ircNls: 74.04
+  gicLs: 444.35
+  gicNls: 249.84
+
+qipRates:
+  rhcHighLs: 105.12
+  rhcHighNls: 47.87
+  chcLs: 613.49
+  chcNls: 279.38
+  ircLs: 85.66
+  ircNls: 72.58
+  gicLs: 435.61
+  gicNls: 244.93
+
+flags:
+  hasQip: true
+  has60DaySplit: false
+  hasSia: false
+  chcIn15MinUnits: true
+  hasMinChc8Hours: false

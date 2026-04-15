@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FullPricerStrategy.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Hospice PC Pricer API</a> &gt; <a href="index.source.html" class="el_package">com.cms.hospice.pricing</a> &gt; <span class="el_source">FullPricerStrategy.java</span></div><h1>FullPricerStrategy.java</h1><pre class="source lang-java linenums">package com.cms.hospice.pricing;
+
+import com.cms.hospice.model.*;
+import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+/**
+ * FY2016.1 (Jan 2016+) – FY2021 pricing strategy.
+ *
+ * Key additions over ModernPricerStrategy:
+ * - 60-day RHC HIGH/LOW rate split for revenue code 0651
+ * - CHC &lt; 32 units: single-day payment uses HIGH or LOW RHC rate based on
+ * prior service days (same 60-day boundary logic as RHC)
+ * - EOL SIA (Service Intensity Add-on) for up to 7 days
+ * - New return codes: 73, 74, 75, 77 (instead of 00)
+ * 73: ALL days LOW rate, no SIA
+ * 74: ALL days LOW rate, with SIA
+ * 75: SOME/ALL days HIGH rate, no SIA
+ * 77: SOME/ALL days HIGH rate, with SIA
+ *
+ * Covers fiscalYears: FY2016_1, FY2017, FY2018, FY2019, FY2020, FY2021.
+ */
+@Component(&quot;fullPricerStrategy&quot;)
+<span class="fc" id="L26">public class FullPricerStrategy implements FiscalYearStrategy {</span>
+
+    @Override
+    public PricingResult calculate(HospiceClaim claim, FiscalYearRates rates) {
+<span class="fc bfc" id="L30" title="All 2 branches covered.">        if (anyUnitOver1000(claim)) {</span>
+<span class="fc" id="L31">            return PricingResult.error(ReturnCode.ERROR_10);</span>
+        }
+
+<span class="fc" id="L34">        boolean qip = claim.isQip();</span>
+
+<span class="fc" id="L36">        BigDecimal pay1 = BigDecimal.ZERO;</span>
+<span class="fc" id="L37">        BigDecimal pay2 = BigDecimal.ZERO;</span>
+<span class="fc" id="L38">        BigDecimal pay3 = BigDecimal.ZERO;</span>
+<span class="fc" id="L39">        BigDecimal pay4 = BigDecimal.ZERO;</span>
+
+<span class="fc" id="L41">        boolean hasHighDays = false;</span>
+<span class="fc" id="L42">        boolean hasLowDays = false;</span>
+<span class="fc" id="L43">        int highDaysCount = 0;</span>
+<span class="fc" id="L44">        int lowDaysCount = 0;</span>
+
+        // ── RHC (0651) ──────────────────────────────────────────────────────
+<span class="fc" id="L47">        RevenueLineItem li1 = claim.lineItem1();</span>
+<span class="pc bpc" id="L48" title="2 of 6 branches missed.">        if (li1 != null &amp;&amp; li1.isRhc() &amp;&amp; li1.units() &gt; 0</span>
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">                &amp;&amp; li1.dateOfService() != null</span>
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">                &amp;&amp; !li1.dateOfService().isBefore(claim.admissionDate())) {</span>
+
+<span class="fc" id="L52">            RhcSplitResult split = RhcSplitCalculator.calculate(</span>
+<span class="fc" id="L53">                    rates, claim, li1.dateOfService(), li1.units(), qip);</span>
+<span class="fc" id="L54">            pay1 = split.totalPayment();</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">            if (split.hasHighDays()) {</span>
+<span class="fc" id="L56">                hasHighDays = true;</span>
+<span class="fc" id="L57">                highDaysCount += split.highDays();</span>
+            }
+<span class="fc bfc" id="L59" title="All 2 branches covered.">            if (split.hasLowDays()) {</span>
+<span class="fc" id="L60">                hasLowDays = true;</span>
+<span class="fc" id="L61">                lowDaysCount += split.lowDays();</span>
+            }
+        }
+
+        // ── CHC (0652) ───────────────────────────────────────────────────────
+<span class="fc" id="L66">        RevenueLineItem li2 = claim.lineItem2();</span>
+<span class="pc bpc" id="L67" title="2 of 6 branches missed.">        if (li2 != null &amp;&amp; li2.isChc() &amp;&amp; li2.units() &gt; 0) {</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">            if (li2.units() &lt; 32) {</span>
+                // Single-day RHC rate — respects 60-day split boundary
+<span class="fc" id="L70">                LocalDate dos2 = li2.dateOfService();</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">                int priorSvcDays = (dos2 != null)</span>
+<span class="fc" id="L72">                        ? RhcSplitCalculator.computePriorSvcDays(claim, dos2)</span>
+<span class="pc" id="L73">                        : 0;</span>
+
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">                if (priorSvcDays &lt; 60) {</span>
+<span class="fc" id="L76">                    pay2 = PaymentCalculator.perDiem(</span>
+<span class="fc" id="L77">                            rates.effectiveRhcHighLs(qip), rates.effectiveRhcHighNls(qip),</span>
+<span class="fc" id="L78">                            claim.beneficiaryWageIndex(), 1);</span>
+<span class="fc" id="L79">                    hasHighDays = true;</span>
+<span class="fc" id="L80">                    highDaysCount++;</span>
+                } else {
+<span class="nc" id="L82">                    pay2 = PaymentCalculator.perDiem(</span>
+<span class="nc" id="L83">                            rates.effectiveRhcLowLs(qip), rates.effectiveRhcLowNls(qip),</span>
+<span class="nc" id="L84">                            claim.beneficiaryWageIndex(), 1);</span>
+<span class="nc" id="L85">                    hasLowDays = true;</span>
+<span class="nc" id="L86">                    lowDaysCount++;</span>
+                }
+<span class="fc" id="L88">            } else {</span>
+<span class="fc" id="L89">                pay2 = PaymentCalculator.chcFromQuarters(</span>
+<span class="fc" id="L90">                        rates.effectiveChcLs(qip), rates.effectiveChcNls(qip),</span>
+<span class="fc" id="L91">                        claim.beneficiaryWageIndex(), li2.units());</span>
+            }
+        }
+
+        // ── IRC (0655) ───────────────────────────────────────────────────────
+<span class="fc" id="L96">        RevenueLineItem li3 = claim.lineItem3();</span>
+<span class="pc bpc" id="L97" title="2 of 6 branches missed.">        if (li3 != null &amp;&amp; li3.isIrc() &amp;&amp; li3.units() &gt; 0) {</span>
+<span class="fc" id="L98">            pay3 = PaymentCalculator.perDiem(</span>
+<span class="fc" id="L99">                    rates.effectiveIrcLs(qip), rates.effectiveIrcNls(qip),</span>
+<span class="fc" id="L100">                    claim.providerWageIndex(), li3.units());</span>
+        }
+
+        // ── GIC (0656) ───────────────────────────────────────────────────────
+<span class="fc" id="L104">        RevenueLineItem li4 = claim.lineItem4();</span>
+<span class="pc bpc" id="L105" title="2 of 6 branches missed.">        if (li4 != null &amp;&amp; li4.isGic() &amp;&amp; li4.units() &gt; 0) {</span>
+<span class="fc" id="L106">            pay4 = PaymentCalculator.perDiem(</span>
+<span class="fc" id="L107">                    rates.effectiveGicLs(qip), rates.effectiveGicNls(qip),</span>
+<span class="fc" id="L108">                    claim.providerWageIndex(), li4.units());</span>
+        }
+
+        // ── SIA add-on ───────────────────────────────────────────────────────
+<span class="fc" id="L112">        SiaResult sia = SiaResult.none();</span>
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">        if (rates.hasSia()) {</span>
+<span class="fc" id="L114">            sia = SiaCalculator.calculate(rates, claim.beneficiaryWageIndex(),</span>
+<span class="fc" id="L115">                    claim.safeEolDayUnits(), qip);</span>
+        }
+
+<span class="fc" id="L118">        BigDecimal total = pay1.add(pay2).add(pay3).add(pay4).add(sia.totalPayment());</span>
+
+        // ── Return code determination ─────────────────────────────────────
+        // When RHC or low-unit CHC days are present, set an informational RTC.
+        // If neither high nor low RHC day indicator was set, use SUCCESS_00.
+        ReturnCode rtc;
+<span class="fc bfc" id="L124" title="All 4 branches covered.">        if (!hasHighDays &amp;&amp; !hasLowDays) {</span>
+<span class="fc" id="L125">            rtc = ReturnCode.SUCCESS_00;</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">        } else if (sia.hasSia()) {</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">            rtc = hasHighDays ? ReturnCode.SUCCESS_77 : ReturnCode.SUCCESS_74;</span>
+        } else {
+<span class="fc bfc" id="L129" title="All 2 branches covered.">            rtc = hasHighDays ? ReturnCode.SUCCESS_75 : ReturnCode.SUCCESS_73;</span>
+        }
+
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">        BigDecimal[] eolPays = sia.dayPayments() != null ? sia.dayPayments() : new BigDecimal[7];</span>
+
+<span class="fc" id="L134">        return new PricingResult(</span>
+<span class="fc" id="L135">                pay1, pay2, pay3, pay4, total, rtc.getCode(),</span>
+                highDaysCount, lowDaysCount,
+                eolPays,
+                BigDecimal.ZERO, BigDecimal.ZERO);
+    }
+
+    private boolean anyUnitOver1000(HospiceClaim claim) {
+<span class="fc bfc" id="L142" title="All 2 branches covered.">        return unitOver1000(claim.lineItem1())</span>
+<span class="pc bpc" id="L143" title="1 of 2 branches missed.">                || unitOver1000(claim.lineItem2())</span>
+<span class="fc bfc" id="L144" title="All 2 branches covered.">                || unitOver1000(claim.lineItem3())</span>
+<span class="pc bpc" id="L145" title="1 of 2 branches missed.">                || unitOver1000(claim.lineItem4());</span>
+    }
+
+    private boolean unitOver1000(RevenueLineItem li) {
+<span class="fc bfc" id="L149" title="All 4 branches covered.">        return li != null &amp;&amp; li.units() &gt; 1000;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

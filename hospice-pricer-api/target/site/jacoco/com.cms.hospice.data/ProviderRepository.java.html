@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProviderRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Hospice PC Pricer API</a> &gt; <a href="index.source.html" class="el_package">com.cms.hospice.data</a> &gt; <span class="el_source">ProviderRepository.java</span></div><h1>ProviderRepository.java</h1><pre class="source lang-java linenums">package com.cms.hospice.data;
+
+import com.cms.hospice.model.ProviderData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
+import java.util.*;
+
+/**
+ * In-memory repository for provider data.
+ * Indexed by provider number; supports multiple entries per provider sorted by
+ * effective date.
+ */
+@Component
+<span class="fc" id="L16">public class ProviderRepository {</span>
+
+<span class="fc" id="L18">    private static final Logger log = LoggerFactory.getLogger(ProviderRepository.class);</span>
+
+    // providerNumber → list of ProviderData sorted by effectiveDate ascending
+<span class="fc" id="L21">    private final Map&lt;String, List&lt;ProviderData&gt;&gt; providerIndex = new HashMap&lt;&gt;();</span>
+
+    public void load(List&lt;ProviderData&gt; providers) {
+<span class="fc" id="L24">        providerIndex.clear();</span>
+<span class="fc bfc" id="L25" title="All 2 branches covered.">        for (ProviderData p : providers) {</span>
+<span class="fc" id="L26">            providerIndex.computeIfAbsent(p.providerNumber(), k -&gt; new ArrayList&lt;&gt;()).add(p);</span>
+<span class="fc" id="L27">        }</span>
+<span class="fc" id="L28">        providerIndex.values().forEach(list -&gt; list.sort(Comparator.comparing(ProviderData::effectiveDate)));</span>
+<span class="fc" id="L29">        log.info(&quot;Provider data loaded: {} providers, {} total records&quot;,</span>
+<span class="fc" id="L30">                providerIndex.size(), providers.size());</span>
+<span class="fc" id="L31">    }</span>
+
+    /**
+     * Finds the most recent provider record with effective date &lt;= fromDate.
+     * Matches COBOL 0700-GET-PROVIDER / 0800-GET-CURR-PROV logic.
+     */
+    public Optional&lt;ProviderData&gt; findByProviderNumber(String providerNumber, java.time.LocalDate fromDate) {
+<span class="fc" id="L38">        List&lt;ProviderData&gt; entries = providerIndex.get(providerNumber);</span>
+<span class="pc bpc" id="L39" title="2 of 4 branches missed.">        if (entries == null || entries.isEmpty()) {</span>
+<span class="nc" id="L40">            return Optional.empty();</span>
+        }
+
+<span class="fc" id="L43">        ProviderData result = null;</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">        for (ProviderData p : entries) {</span>
+<span class="pc bpc" id="L45" title="1 of 2 branches missed.">            if (!fromDate.isBefore(p.effectiveDate())) {</span>
+<span class="fc" id="L46">                result = p;</span>
+            }
+<span class="fc" id="L48">        }</span>
+<span class="fc" id="L49">        return Optional.ofNullable(result);</span>
+    }
+
+    /**
+     * Finds any provider record by provider number (ignores date).
+     * Used to check if provider exists at all.
+     */
+    public boolean exists(String providerNumber) {
+<span class="nc" id="L57">        return providerIndex.containsKey(providerNumber);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

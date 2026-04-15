@@ -1,0 +1,24 @@
+# FY2007.1 Hospice Payment Rates
+# Effective: 2007-01-01 through 2007-09-30
+# Introduces CHC 15-min unit billing (was hourly)
+# < 32 units pays 1 day at RHC rate; >= 32 uses CHC hourly formula
+# Source: HOSPR210 2007-1-PROCESS-DATA paragraph
+
+fiscalYear: FY2007_1
+
+rates:
+  rhcHighLs: 89.87
+  rhcHighNls: 40.92
+  chcLs: 524.50
+  chcNls: 238.86
+  ircLs: 73.24
+  ircNls: 62.06
+  gicLs: 372.42
+  gicNls: 209.40
+
+flags:
+  hasQip: false
+  has60DaySplit: false
+  hasSia: false
+  chcIn15MinUnits: true
+  hasMinChc8Hours: false

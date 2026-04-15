@@ -1,0 +1,22 @@
+# FY2005 Hospice Payment Rates
+# Effective: 2004-10-01 through 2005-09-30
+# Source: HOSPR210 2005-PROCESS-DATA paragraph
+
+fiscalYear: FY2005
+
+rates:
+  rhcHighLs: 83.81
+  rhcHighNls: 38.17
+  chcLs: 489.16
+  chcNls: 222.76
+  ircLs: 68.30
+  ircNls: 57.88
+  gicLs: 347.32
+  gicNls: 195.29
+
+flags:
+  hasQip: false
+  has60DaySplit: false
+  hasSia: false
+  chcIn15MinUnits: false
+  hasMinChc8Hours: true

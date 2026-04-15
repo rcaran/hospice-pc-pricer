@@ -1,0 +1,11 @@
+D:\Projetos\Test-Cobol\Hospice-PC-Pricer\hospice-pricer-api\src\test\java\com\cms\hospice\api\HospicePricerControllerTest.java
+D:\Projetos\Test-Cobol\Hospice-PC-Pricer\hospice-pricer-api\src\test\java\com\cms\hospice\config\RateProviderIntegrationTest.java
+D:\Projetos\Test-Cobol\Hospice-PC-Pricer\hospice-pricer-api\src\test\java\com\cms\hospice\data\FileParserTest.java
+D:\Projetos\Test-Cobol\Hospice-PC-Pricer\hospice-pricer-api\src\test\java\com\cms\hospice\pricing\PaymentCalculatorTest.java
+D:\Projetos\Test-Cobol\Hospice-PC-Pricer\hospice-pricer-api\src\test\java\com\cms\hospice\pricing\RhcSplitCalculatorTest.java
+D:\Projetos\Test-Cobol\Hospice-PC-Pricer\hospice-pricer-api\src\test\java\com\cms\hospice\pricing\SiaCalculatorTest.java
+D:\Projetos\Test-Cobol\Hospice-PC-Pricer\hospice-pricer-api\src\test\java\com\cms\hospice\pricing\StrategyTest.java
+D:\Projetos\Test-Cobol\Hospice-PC-Pricer\hospice-pricer-api\src\test\java\com\cms\hospice\pricing\TestFixtures.java
+D:\Projetos\Test-Cobol\Hospice-PC-Pricer\hospice-pricer-api\src\test\java\com\cms\hospice\regression\CobolParityRegressionTest.java
+D:\Projetos\Test-Cobol\Hospice-PC-Pricer\hospice-pricer-api\src\test\java\com\cms\hospice\service\FiscalYearRouterTest.java
+D:\Projetos\Test-Cobol\Hospice-PC-Pricer\hospice-pricer-api\src\test\java\com\cms\hospice\service\ValidationServiceTest.java

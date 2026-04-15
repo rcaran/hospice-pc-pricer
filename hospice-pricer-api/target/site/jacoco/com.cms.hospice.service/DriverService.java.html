@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DriverService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Hospice PC Pricer API</a> &gt; <a href="index.source.html" class="el_package">com.cms.hospice.service</a> &gt; <span class="el_source">DriverService.java</span></div><h1>DriverService.java</h1><pre class="source lang-java linenums">package com.cms.hospice.service;
+
+import com.cms.hospice.data.ProviderRepository;
+import com.cms.hospice.data.WageIndexRepository;
+import com.cms.hospice.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Optional;
+
+/**
+ * Top-level orchestrator that mirrors the HOSDR210 COBOL batch driver.
+ *
+ * Processing sequence:
+ * 1. Look up provider record (0700-GET-PROVIDER)
+ * 2. Determine CBSA vs MSA period and compute FY boundaries
+ * 3. Resolve provider and beneficiary wage indexes (0350/0375)
+ * 4. Validate the enriched claim (ValidationService)
+ * 5. Route to fiscal year strategy and price (FiscalYearRouter)
+ */
+@Service
+public class DriverService {
+
+<span class="fc" id="L27">    private static final Logger log = LoggerFactory.getLogger(DriverService.class);</span>
+
+    /** Claims before this date use MSA wage indexes (pre-CBSA era). */
+<span class="fc" id="L30">    private static final LocalDate CBSA_EFFECTIVE_DATE = LocalDate.of(2005, 10, 1);</span>
+
+    /** Before this date the CBSA comes from the provider record, not the claim. */
+<span class="fc" id="L33">    private static final LocalDate CBSA_FROM_CLAIM_DATE = LocalDate.of(2008, 1, 1);</span>
+
+    private final ProviderRepository providerRepository;
+    private final WageIndexRepository wageIndexRepository;
+    private final ValidationService validationService;
+    private final FiscalYearRouter fiscalYearRouter;
+
+    public DriverService(ProviderRepository providerRepository,
+            WageIndexRepository wageIndexRepository,
+            ValidationService validationService,
+<span class="fc" id="L43">            FiscalYearRouter fiscalYearRouter) {</span>
+<span class="fc" id="L44">        this.providerRepository = providerRepository;</span>
+<span class="fc" id="L45">        this.wageIndexRepository = wageIndexRepository;</span>
+<span class="fc" id="L46">        this.validationService = validationService;</span>
+<span class="fc" id="L47">        this.fiscalYearRouter = fiscalYearRouter;</span>
+<span class="fc" id="L48">    }</span>
+
+    /**
+     * Prices a single hospice claim.
+     *
+     * @param inputClaim claim with providerNumber, fromDate, CBSAs, and line
+     *                   items populated; wage indexes may be null or zero
+     *                   (they are resolved from reference files internally)
+     * @return fully populated PricingResult
+     */
+    public PricingResult price(HospiceClaim inputClaim) {
+<span class="fc" id="L59">        LocalDate fromDate = inputClaim.fromDate();</span>
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">        if (fromDate == null) {</span>
+<span class="nc" id="L61">            return PricingResult.error(ReturnCode.ERROR_10);</span>
+        }
+
+        // ── 1. Provider lookup ────────────────────────────────────────────
+<span class="fc" id="L65">        Optional&lt;ProviderData&gt; provOpt = providerRepository.findByProviderNumber(</span>
+<span class="fc" id="L66">                inputClaim.providerNumber(), fromDate);</span>
+
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">        if (provOpt.isEmpty()) {</span>
+<span class="nc" id="L69">            log.debug(&quot;Provider not found: {} date={}&quot;, inputClaim.providerNumber(), fromDate);</span>
+<span class="nc" id="L70">            return PricingResult.error(ReturnCode.ERROR_51);</span>
+        }
+<span class="fc" id="L72">        ProviderData provider = provOpt.get();</span>
+
+        // COBOL compatibility check: if provider eff-date &lt; 2005-10-01 and claim &gt;
+        // 2005-09-30
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">        if (provider.effectiveDate() != null</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">                &amp;&amp; provider.effectiveDate().isBefore(LocalDate.of(2005, 10, 1))</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">                &amp;&amp; fromDate.isAfter(LocalDate.of(2005, 9, 30))) {</span>
+<span class="nc" id="L79">            return PricingResult.error(ReturnCode.ERROR_51);</span>
+        }
+
+        // ── 2. Compute FY boundaries ──────────────────────────────────────
+<span class="fc" id="L83">        LocalDate[] fyBounds = computeFyBoundaries(fromDate);</span>
+<span class="fc" id="L84">        LocalDate fyBegin = fyBounds[0];</span>
+<span class="fc" id="L85">        LocalDate fyEnd = fyBounds[1];</span>
+
+        // ── 3. Resolve wage indexes ───────────────────────────────────────
+        BigDecimal provWI;
+        BigDecimal beneWI;
+
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        if (fromDate.isAfter(CBSA_EFFECTIVE_DATE.minusDays(1))) {</span>
+            // Post-2005: use CBSA table
+<span class="fc" id="L93">            String provCbsa = resolveProvCbsa(inputClaim, provider);</span>
+<span class="fc" id="L94">            String beneCbsa = inputClaim.beneficiaryCbsa();</span>
+
+<span class="fc" id="L96">            Optional&lt;BigDecimal&gt; provWiOpt = wageIndexRepository.findCbsaWageIndex(</span>
+                    provCbsa, fromDate, fyBegin, fyEnd);
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">            if (provWiOpt.isEmpty()) {</span>
+<span class="nc" id="L99">                log.debug(&quot;Provider CBSA WI not found: cbsa={}&quot;, provCbsa);</span>
+<span class="nc" id="L100">                return PricingResult.error(ReturnCode.ERROR_40);</span>
+            }
+<span class="fc" id="L102">            provWI = provWiOpt.get();</span>
+
+<span class="fc" id="L104">            Optional&lt;BigDecimal&gt; beneWiOpt = wageIndexRepository.findCbsaWageIndex(</span>
+                    beneCbsa, fromDate, fyBegin, fyEnd);
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">            if (beneWiOpt.isEmpty()) {</span>
+<span class="nc" id="L107">                log.debug(&quot;Beneficiary CBSA WI not found: cbsa={}&quot;, beneCbsa);</span>
+<span class="nc" id="L108">                return PricingResult.error(ReturnCode.ERROR_50);</span>
+            }
+<span class="fc" id="L110">            beneWI = beneWiOpt.get();</span>
+
+<span class="fc" id="L112">        } else {</span>
+            // Pre-2006: use MSA table
+<span class="nc" id="L114">            String provMsa = provider.msaGeoLoc();</span>
+            // Bene MSA comes from the claim's BILL-BENE-CBSA field
+            // (which redefines the same area in the COBOL record)
+<span class="nc" id="L117">            String beneMsa = inputClaim.beneficiaryCbsa();</span>
+
+<span class="nc" id="L119">            Optional&lt;BigDecimal&gt; provWiOpt = wageIndexRepository.findMsaWageIndex(provMsa, fromDate);</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            if (provWiOpt.isEmpty()) {</span>
+<span class="nc" id="L121">                return PricingResult.error(ReturnCode.ERROR_40);</span>
+            }
+<span class="nc" id="L123">            provWI = provWiOpt.get();</span>
+
+<span class="nc" id="L125">            Optional&lt;BigDecimal&gt; beneWiOpt = wageIndexRepository.findMsaWageIndex(beneMsa, fromDate);</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">            if (beneWiOpt.isEmpty()) {</span>
+<span class="nc" id="L127">                return PricingResult.error(ReturnCode.ERROR_50);</span>
+            }
+<span class="nc" id="L129">            beneWI = beneWiOpt.get();</span>
+        }
+
+        // ── 4. Enrich claim with resolved wage indexes ────────────────────
+<span class="fc" id="L133">        HospiceClaim enrichedClaim = inputClaim.withWageIndexes(provWI, beneWI);</span>
+
+        // ── 5. Validate ───────────────────────────────────────────────────
+<span class="fc" id="L136">        PricingResult validationError = validationService.validate(enrichedClaim);</span>
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">        if (validationError != null) {</span>
+<span class="nc" id="L138">            return validationError;</span>
+        }
+
+        // ── 6. Route and price ────────────────────────────────────────────
+<span class="fc" id="L142">        FiscalYearRouter.FyEntry fyEntry = fiscalYearRouter.resolve(fromDate);</span>
+<span class="fc" id="L143">        log.debug(&quot;Routing claim date={} to fiscalYear={}&quot;, fromDate, fyEntry.fiscalYearId());</span>
+
+<span class="fc" id="L145">        return fyEntry.strategy().calculate(enrichedClaim, fyEntry.rates());</span>
+    }
+
+    /**
+     * Determines the provider CBSA code to use based on claim date.
+     *
+     * For claims before 2008-01-01: use provider record's CBSA geo-loc.
+     * For claims from 2008-01-01: use claim's BILL-PROV-CBSA.
+     */
+    private String resolveProvCbsa(HospiceClaim claim, ProviderData provider) {
+<span class="pc bpc" id="L155" title="1 of 2 branches missed.">        if (claim.fromDate().isBefore(CBSA_FROM_CLAIM_DATE)) {</span>
+<span class="nc" id="L156">            return provider.cbsaGeoLoc();</span>
+        }
+<span class="fc" id="L158">        return claim.providerCbsa();</span>
+    }
+
+    /**
+     * Computes the fiscal year begin/end dates for a given claim FROM-DATE.
+     *
+     * COBOL logic (FY begins Oct 1):
+     * If MM in 01–09: FY-BEGIN = (year-1)-10-01, FY-END = year-09-30
+     * If MM in 10–12: FY-BEGIN = year-10-01, FY-END = (year+1)-09-30
+     *
+     * @return [fyBegin, fyEnd]
+     */
+    static LocalDate[] computeFyBoundaries(LocalDate fromDate) {
+<span class="fc" id="L171">        int month = fromDate.getMonthValue();</span>
+<span class="fc" id="L172">        int year = fromDate.getYear();</span>
+
+<span class="pc bpc" id="L174" title="2 of 4 branches missed.">        if (month &gt;= 1 &amp;&amp; month &lt;= 9) {</span>
+<span class="fc" id="L175">            return new LocalDate[] {</span>
+<span class="fc" id="L176">                    LocalDate.of(year - 1, 10, 1),</span>
+<span class="fc" id="L177">                    LocalDate.of(year, 9, 30)</span>
+            };
+        } else {
+<span class="nc" id="L180">            return new LocalDate[] {</span>
+<span class="nc" id="L181">                    LocalDate.of(year, 10, 1),</span>
+<span class="nc" id="L182">                    LocalDate.of(year + 1, 9, 30)</span>
+            };
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

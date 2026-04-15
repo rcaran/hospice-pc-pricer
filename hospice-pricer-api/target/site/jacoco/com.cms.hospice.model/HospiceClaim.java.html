@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HospiceClaim.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Hospice PC Pricer API</a> &gt; <a href="index.source.html" class="el_package">com.cms.hospice.model</a> &gt; <span class="el_source">HospiceClaim.java</span></div><h1>HospiceClaim.java</h1><pre class="source lang-java linenums">package com.cms.hospice.model;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+/**
+ * Represents the BILL-315-DATA input record mapped to a clean domain model.
+ * Maps directly from the COBOL BILL-315-DATA 315-byte linkage section.
+ */
+<span class="fc" id="L10">public record HospiceClaim(</span>
+        String npi, // BILL-NPI (10)
+        String providerNumber, // BILL-PROV-NO (6)
+        LocalDate fromDate, // BILL-FROM-DATE (8)
+        LocalDate admissionDate, // BILL-ADMISSION-DATE (8)
+        String providerCbsa, // BILL-PROV-CBSA (5)
+        String beneficiaryCbsa, // BILL-BENE-CBSA (5)
+        BigDecimal providerWageIndex, // BILL-PROV-WAGE-INDEX (populated by DriverService)
+        BigDecimal beneficiaryWageIndex, // BILL-BENE-WAGE-INDEX (populated by DriverService)
+        int priorBenefitDays, // BILL-NA-ADD-ON-DAY1-UNITS (prior RHC days before service date)
+        int priorBenefitDays2, // BILL-NA-ADD-ON-DAY2-UNITS
+        int[] eolAddOnDayUnits, // BILL-EOL-ADD-ON-DAY1-7-UNITS (7 days, CHC 15-min units)
+        String qipIndicator, // BILL-QIP-IND (&quot;1&quot; = QIP, &quot; &quot; = no QIP)
+        RevenueLineItem lineItem1, // Rev 0651 (RHC)
+        RevenueLineItem lineItem2, // Rev 0652 (CHC)
+        RevenueLineItem lineItem3, // Rev 0655 (IRC)
+        RevenueLineItem lineItem4 // Rev 0656 (GIC)
+) {
+    public boolean isQip() {
+<span class="fc" id="L29">        return &quot;1&quot;.equals(qipIndicator);</span>
+    }
+
+    public RevenueLineItem[] lineItems() {
+<span class="nc" id="L33">        return new RevenueLineItem[] { lineItem1, lineItem2, lineItem3, lineItem4 };</span>
+    }
+
+    public int[] safeEolDayUnits() {
+<span class="pc bpc" id="L37" title="1 of 2 branches missed.">        if (eolAddOnDayUnits == null)</span>
+<span class="nc" id="L38">            return new int[7];</span>
+<span class="fc" id="L39">        int[] result = new int[7];</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        for (int i = 0; i &lt; Math.min(7, eolAddOnDayUnits.length); i++) {</span>
+<span class="fc" id="L41">            result[i] = eolAddOnDayUnits[i];</span>
+        }
+<span class="fc" id="L43">        return result;</span>
+    }
+
+    /**
+     * Returns a new HospiceClaim identical to this one but with resolved wage
+     * indexes.
+     * Used by DriverService after CBSA/MSA lookup.
+     */
+    public HospiceClaim withWageIndexes(BigDecimal provWI, BigDecimal beneWI) {
+<span class="fc" id="L52">        return new HospiceClaim(npi, providerNumber, fromDate, admissionDate,</span>
+                providerCbsa, beneficiaryCbsa, provWI, beneWI,
+                priorBenefitDays, priorBenefitDays2, eolAddOnDayUnits,
+                qipIndicator, lineItem1, lineItem2, lineItem3, lineItem4);
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

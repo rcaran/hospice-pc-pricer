@@ -1,0 +1,36 @@
+# FY2019 Hospice Payment Rates
+# Effective: 2018-10-01 through 2019-09-30
+# Source: HOSPRATE copybook (2019-V190-DATA-VALUES)
+
+fiscalYear: FY2019
+
+rates:
+  rhcHighLs: 134.84
+  rhcHighNls: 61.41
+  rhcLowLs: 105.96
+  rhcLowNls: 48.25
+  chcLs: 685.30
+  chcNls: 312.08
+  ircLs: 95.27
+  ircNls: 80.74
+  gicLs: 485.24
+  gicNls: 272.83
+
+qipRates:
+  rhcHighLs: 132.19
+  rhcHighNls: 60.20
+  rhcLowLs: 103.88
+  rhcLowNls: 47.30
+  chcLs: 671.83
+  chcNls: 305.95
+  ircLs: 93.41
+  ircNls: 79.15
+  gicLs: 475.71
+  gicNls: 267.47
+
+flags:
+  hasQip: true
+  has60DaySplit: true
+  hasSia: true
+  chcIn15MinUnits: true
+  hasMinChc8Hours: false

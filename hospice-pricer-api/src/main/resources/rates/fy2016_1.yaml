@@ -1,0 +1,37 @@
+# FY2016.1 Hospice Payment Rates
+# Effective: 2016-01-01 through 2016-09-30
+# Introduces HIGH/LOW RHC 60-day split and SIA add-on
+# Source: HOSPRATE copybook (2016-V161-DATA-VALUES)
+
+fiscalYear: FY2016_1
+
+rates:
+  rhcHighLs: 128.38
+  rhcHighNls: 58.46
+  rhcLowLs: 100.89
+  rhcLowNls: 45.94
+  chcLs: 649.17
+  chcNls: 295.62
+  ircLs: 90.64
+  ircNls: 76.81
+  gicLs: 460.94
+  gicNls: 259.17
+
+qipRates:
+  rhcHighLs: 125.86
+  rhcHighNls: 57.31
+  rhcLowLs: 98.90
+  rhcLowNls: 45.04
+  chcLs: 636.39
+  chcNls: 289.80
+  ircLs: 88.85
+  ircNls: 75.30
+  gicLs: 451.87
+  gicNls: 254.06
+
+flags:
+  hasQip: true
+  has60DaySplit: true
+  hasSia: true
+  chcIn15MinUnits: true
+  hasMinChc8Hours: false

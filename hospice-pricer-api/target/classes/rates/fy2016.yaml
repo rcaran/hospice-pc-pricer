@@ -1,0 +1,34 @@
+# FY2016 Hospice Payment Rates (initial release, Oct 2015 - Dec 2015)
+# Effective: 2015-10-01 through 2015-12-31
+# Single RHC rate — no 60-day split yet
+# Source: HOSPRATE copybook (2016-DATA-VALUES)
+
+fiscalYear: FY2016
+
+rates:
+  # Single RHC rate (no split in this period)
+  rhcHighLs: 111.23
+  rhcHighNls: 50.66
+  chcLs: 649.17
+  chcNls: 295.62
+  ircLs: 90.64
+  ircNls: 76.81
+  gicLs: 460.94
+  gicNls: 259.17
+
+qipRates:
+  rhcHighLs: 109.04
+  rhcHighNls: 49.66
+  chcLs: 636.39
+  chcNls: 289.80
+  ircLs: 88.85
+  ircNls: 75.30
+  gicLs: 451.87
+  gicNls: 254.06
+
+flags:
+  hasQip: true
+  has60DaySplit: false
+  hasSia: false
+  chcIn15MinUnits: true
+  hasMinChc8Hours: false

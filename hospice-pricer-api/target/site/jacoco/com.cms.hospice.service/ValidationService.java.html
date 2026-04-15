@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ValidationService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Hospice PC Pricer API</a> &gt; <a href="index.source.html" class="el_package">com.cms.hospice.service</a> &gt; <span class="el_source">ValidationService.java</span></div><h1>ValidationService.java</h1><pre class="source lang-java linenums">package com.cms.hospice.service;
+
+import com.cms.hospice.model.HospiceClaim;
+import com.cms.hospice.model.PricingResult;
+import com.cms.hospice.model.ReturnCode;
+import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+
+/**
+ * Validates hospice claim input data prior to pricing.
+ * Mirrors the validation logic distributed across COBOL paragraphs
+ * 0100-VALIDATE-* in HOSDR210 / HOSPR210.
+ */
+@Component
+<span class="fc" id="L16">public class ValidationService {</span>
+
+    /**
+     * Validates the claim. Returns a {@link PricingResult} error if validation
+     * fails, or {@code null} if the claim is valid and may proceed to pricing.
+     */
+    public PricingResult validate(HospiceClaim claim) {
+
+        // Provider number must be present
+<span class="fc bfc" id="L25" title="All 2 branches covered.">        if (isEmpty(claim.providerNumber())) {</span>
+<span class="fc" id="L26">            return PricingResult.error(ReturnCode.ERROR_51);</span>
+        }
+
+        // Claim must have a FROM date
+<span class="fc bfc" id="L30" title="All 2 branches covered.">        if (claim.fromDate() == null) {</span>
+<span class="fc" id="L31">            return PricingResult.error(ReturnCode.ERROR_10);</span>
+        }
+
+        // Admission date must not be after FROM date
+<span class="fc bfc" id="L35" title="All 2 branches covered.">        if (claim.admissionDate() != null</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">                &amp;&amp; claim.admissionDate().isAfter(claim.fromDate())) {</span>
+<span class="fc" id="L37">            return PricingResult.error(ReturnCode.ERROR_10);</span>
+        }
+
+        // Wage indexes must be positive (zero would produce zero payment silently)
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        if (!isPositive(claim.providerWageIndex())) {</span>
+<span class="fc" id="L42">            return PricingResult.error(ReturnCode.ERROR_40);</span>
+        }
+<span class="fc bfc" id="L44" title="All 2 branches covered.">        if (!isPositive(claim.beneficiaryWageIndex())) {</span>
+<span class="fc" id="L45">            return PricingResult.error(ReturnCode.ERROR_50);</span>
+        }
+
+<span class="fc" id="L48">        return null; // valid</span>
+    }
+
+    private boolean isEmpty(String s) {
+<span class="fc bfc" id="L52" title="All 4 branches covered.">        return s == null || s.isBlank();</span>
+    }
+
+    private boolean isPositive(BigDecimal bd) {
+<span class="fc bfc" id="L56" title="All 4 branches covered.">        return bd != null &amp;&amp; bd.compareTo(BigDecimal.ZERO) &gt; 0;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

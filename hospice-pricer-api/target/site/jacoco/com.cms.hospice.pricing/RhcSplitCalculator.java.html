@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RhcSplitCalculator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Hospice PC Pricer API</a> &gt; <a href="index.source.html" class="el_package">com.cms.hospice.pricing</a> &gt; <span class="el_source">RhcSplitCalculator.java</span></div><h1>RhcSplitCalculator.java</h1><pre class="source lang-java linenums">package com.cms.hospice.pricing;
+
+import com.cms.hospice.model.FiscalYearRates;
+import com.cms.hospice.model.HospiceClaim;
+import com.cms.hospice.model.RhcSplitResult;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+
+/**
+ * Computes the Routine Home Care (RHC) 60-day HIGH/LOW rate split introduced
+ * in FY2016.1 (January 1, 2016 release, CR #9289).
+ *
+ * Logic mirrors COBOL paragraphs V161-EVAL-RHC-DAYS,
+ * V161-APPLY-HIGH-RHC-RATE, V161-APPLY-LOW-RHC-RATE.
+ *
+ * Prior service days formula (V161-CALC-PRIOR-SVC-DAYS):
+ * days_between = DOS – ADMISSION_DATE (integer day difference)
+ * prior_benefit_days = BILL-NA-ADD-ON-DAY1-UNITS (if &gt; 0)
+ * PRIOR-SVC-DAYS = days_between + prior_benefit_days
+ *
+ * Rate selection:
+ * PRIOR-SVC-DAYS &gt;= 60 → ALL units at LOW rate
+ * PRIOR-SVC-DAYS &lt; 60 → units up to (60 - prior_svc_days) at HIGH rate,
+ * any remaining units at LOW rate
+ */
+public final class RhcSplitCalculator {
+
+    private RhcSplitCalculator() {
+    }
+
+    /**
+     * Calculates the RHC payment applying the 60-day HIGH/LOW rate split.
+     *
+     * @param rates         FY rates (must have has60DaySplit = true)
+     * @param claim         the hospice claim
+     * @param dateOfService the RHC line-item date of service
+     * @param units         number of RHC units (days)
+     * @param qip           whether QIP reduction applies
+     * @return split result with high/low day counts and payment amounts
+     */
+    public static RhcSplitResult calculate(FiscalYearRates rates, HospiceClaim claim,
+            LocalDate dateOfService, int units, boolean qip) {
+<span class="fc" id="L45">        int priorSvcDays = computePriorSvcDays(claim, dateOfService);</span>
+
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        if (priorSvcDays &gt;= 60) {</span>
+            // All days at LOW rate
+<span class="fc" id="L49">            BigDecimal lowPay = PaymentCalculator.perDiem(</span>
+<span class="fc" id="L50">                    rates.effectiveRhcLowLs(qip), rates.effectiveRhcLowNls(qip),</span>
+<span class="fc" id="L51">                    claim.beneficiaryWageIndex(), units);</span>
+<span class="fc" id="L52">            return new RhcSplitResult(0, units, BigDecimal.ZERO, lowPay, lowPay);</span>
+        }
+
+<span class="fc" id="L55">        int highRateDaysLeft = 60 - priorSvcDays;</span>
+
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        if (units &lt;= highRateDaysLeft) {</span>
+            // All days at HIGH rate
+<span class="fc" id="L59">            BigDecimal highPay = PaymentCalculator.perDiem(</span>
+<span class="fc" id="L60">                    rates.effectiveRhcHighLs(qip), rates.effectiveRhcHighNls(qip),</span>
+<span class="fc" id="L61">                    claim.beneficiaryWageIndex(), units);</span>
+<span class="fc" id="L62">            return new RhcSplitResult(units, 0, highPay, BigDecimal.ZERO, highPay);</span>
+        }
+
+        // Split: some HIGH, rest LOW
+<span class="fc" id="L66">        int highUnits = highRateDaysLeft;</span>
+<span class="fc" id="L67">        int lowUnits = units - highUnits;</span>
+
+<span class="fc" id="L69">        BigDecimal highPay = PaymentCalculator.perDiem(</span>
+<span class="fc" id="L70">                rates.effectiveRhcHighLs(qip), rates.effectiveRhcHighNls(qip),</span>
+<span class="fc" id="L71">                claim.beneficiaryWageIndex(), highUnits);</span>
+<span class="fc" id="L72">        BigDecimal lowPay = PaymentCalculator.perDiem(</span>
+<span class="fc" id="L73">                rates.effectiveRhcLowLs(qip), rates.effectiveRhcLowNls(qip),</span>
+<span class="fc" id="L74">                claim.beneficiaryWageIndex(), lowUnits);</span>
+
+<span class="fc" id="L76">        return new RhcSplitResult(highUnits, lowUnits, highPay, lowPay,</span>
+<span class="fc" id="L77">                highPay.add(lowPay));</span>
+    }
+
+    /**
+     * Computes PRIOR-SVC-DAYS matching COBOL V161-CALC-PRIOR-SVC-DAYS.
+     *
+     * COBOL uses FUNCTION INTEGER-OF-DATE (Gregorian day count from a fixed
+     * epoch). Java's ChronoUnit.DAYS.between produces an equivalent integer
+     * difference between two LocalDate values.
+     */
+    static int computePriorSvcDays(HospiceClaim claim, LocalDate dateOfService) {
+<span class="fc" id="L88">        long daysBetween = ChronoUnit.DAYS.between(claim.admissionDate(), dateOfService);</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">        int priorBenefitDays = (claim.priorBenefitDays() &gt; 0) ? claim.priorBenefitDays() : 0;</span>
+<span class="fc" id="L90">        return (int) daysBetween + priorBenefitDays;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

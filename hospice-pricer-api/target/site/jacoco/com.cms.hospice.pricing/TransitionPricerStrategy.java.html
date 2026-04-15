@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TransitionPricerStrategy.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Hospice PC Pricer API</a> &gt; <a href="index.source.html" class="el_package">com.cms.hospice.pricing</a> &gt; <span class="el_source">TransitionPricerStrategy.java</span></div><h1>TransitionPricerStrategy.java</h1><pre class="source lang-java linenums">package com.cms.hospice.pricing;
+
+import com.cms.hospice.model.*;
+import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+
+/**
+ * FY2007.1 – FY2013 pricing strategy.
+ *
+ * Key changes from SimplePricerStrategy:
+ * - CHC (0652) units are now in 15-minute blocks (not whole hours)
+ * - If CHC units &lt; 32 (&lt; 8 hours) AND units &gt; 0: pay one RHC day rate
+ * - If CHC units &gt;= 32: pay CHC formula using UNITS/4 as hours
+ * - No minimum hours check (RTC=20 no longer applies here)
+ * - No QIP, no 60-day split, no SIA
+ *
+ * CHC formula when units &gt;= 32:
+ * (((chcLs * beneWI) + chcNls) / 24) * (units / 4) ROUNDED
+ * CHC formula when 0 &lt; units &lt; 32:
+ * ((rhcHighLs * beneWI) + rhcHighNls) ROUNDED (single day)
+ *
+ * RHC, IRC, GIC formulas: same as SimplePricerStrategy.
+ */
+@Component(&quot;transitionPricerStrategy&quot;)
+<span class="fc" id="L26">public class TransitionPricerStrategy implements FiscalYearStrategy {</span>
+
+    @Override
+    public PricingResult calculate(HospiceClaim claim, FiscalYearRates rates) {
+<span class="pc bpc" id="L30" title="1 of 2 branches missed.">        if (anyUnitOver1000(claim)) {</span>
+<span class="nc" id="L31">            return PricingResult.error(ReturnCode.ERROR_10);</span>
+        }
+
+<span class="fc" id="L34">        BigDecimal pay1 = BigDecimal.ZERO;</span>
+<span class="fc" id="L35">        BigDecimal pay2 = BigDecimal.ZERO;</span>
+<span class="fc" id="L36">        BigDecimal pay3 = BigDecimal.ZERO;</span>
+<span class="fc" id="L37">        BigDecimal pay4 = BigDecimal.ZERO;</span>
+
+<span class="fc" id="L39">        RevenueLineItem li1 = claim.lineItem1();</span>
+<span class="pc bpc" id="L40" title="2 of 6 branches missed.">        if (li1 != null &amp;&amp; li1.isRhc() &amp;&amp; li1.units() &gt; 0) {</span>
+<span class="fc" id="L41">            pay1 = PaymentCalculator.perDiem(</span>
+<span class="fc" id="L42">                    rates.rhcHighLs(), rates.rhcHighNls(),</span>
+<span class="fc" id="L43">                    claim.beneficiaryWageIndex(), li1.units());</span>
+        }
+
+<span class="fc" id="L46">        RevenueLineItem li2 = claim.lineItem2();</span>
+<span class="pc bpc" id="L47" title="2 of 6 branches missed.">        if (li2 != null &amp;&amp; li2.isChc() &amp;&amp; li2.units() &gt; 0) {</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">            if (li2.units() &lt; 32) {</span>
+                // Pay a single RHC-rate day (no units multiplier)
+<span class="fc" id="L50">                pay2 = PaymentCalculator.perDiem(</span>
+<span class="fc" id="L51">                        rates.rhcHighLs(), rates.rhcHighNls(),</span>
+<span class="fc" id="L52">                        claim.beneficiaryWageIndex(), 1);</span>
+            } else {
+<span class="fc" id="L54">                pay2 = PaymentCalculator.chcFromQuarters(</span>
+<span class="fc" id="L55">                        rates.chcLs(), rates.chcNls(),</span>
+<span class="fc" id="L56">                        claim.beneficiaryWageIndex(), li2.units());</span>
+            }
+        }
+
+<span class="fc" id="L60">        RevenueLineItem li3 = claim.lineItem3();</span>
+<span class="pc bpc" id="L61" title="5 of 6 branches missed.">        if (li3 != null &amp;&amp; li3.isIrc() &amp;&amp; li3.units() &gt; 0) {</span>
+<span class="nc" id="L62">            pay3 = PaymentCalculator.perDiem(</span>
+<span class="nc" id="L63">                    rates.ircLs(), rates.ircNls(),</span>
+<span class="nc" id="L64">                    claim.providerWageIndex(), li3.units());</span>
+        }
+
+<span class="fc" id="L67">        RevenueLineItem li4 = claim.lineItem4();</span>
+<span class="pc bpc" id="L68" title="5 of 6 branches missed.">        if (li4 != null &amp;&amp; li4.isGic() &amp;&amp; li4.units() &gt; 0) {</span>
+<span class="nc" id="L69">            pay4 = PaymentCalculator.perDiem(</span>
+<span class="nc" id="L70">                    rates.gicLs(), rates.gicNls(),</span>
+<span class="nc" id="L71">                    claim.providerWageIndex(), li4.units());</span>
+        }
+
+<span class="fc" id="L74">        BigDecimal total = pay1.add(pay2).add(pay3).add(pay4);</span>
+
+<span class="fc" id="L76">        return new PricingResult(</span>
+                pay1, pay2, pay3, pay4, total,
+<span class="fc" id="L78">                ReturnCode.SUCCESS_00.getCode(),</span>
+                0, 0,
+                new BigDecimal[7],
+                BigDecimal.ZERO, BigDecimal.ZERO);
+    }
+
+    private boolean anyUnitOver1000(HospiceClaim claim) {
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        return unitOver1000(claim.lineItem1())</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">                || unitOver1000(claim.lineItem2())</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">                || unitOver1000(claim.lineItem3())</span>
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">                || unitOver1000(claim.lineItem4());</span>
+    }
+
+    private boolean unitOver1000(RevenueLineItem li) {
+<span class="pc bpc" id="L92" title="1 of 4 branches missed.">        return li != null &amp;&amp; li.units() &gt; 1000;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
