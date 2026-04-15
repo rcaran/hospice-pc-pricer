@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.cms.hospice.api.HospicePricerControllerTest
--------------------------------------------------------------------------------
-Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 22.04 s -- in com.cms.hospice.api.HospicePricerControllerTest

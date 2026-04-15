@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.cms.hospice.regression.CobolParityIntegrationTest$Phase8_9_FyBoundaries
--------------------------------------------------------------------------------
-Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.175 s -- in com.cms.hospice.regression.CobolParityIntegrationTest$Phase8_9_FyBoundaries

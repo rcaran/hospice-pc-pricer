@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.cms.hospice.regression.CobolParityIntegrationTest$Phase4_5_ChcAndQip
--------------------------------------------------------------------------------
-Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.144 s -- in com.cms.hospice.regression.CobolParityIntegrationTest$Phase4_5_ChcAndQip
