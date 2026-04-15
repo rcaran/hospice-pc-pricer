@@ -1,0 +1,42 @@
+# ═══════════════════════════════════════════════════════════════
+# Java / Maven
+# ═══════════════════════════════════════════════════════════════
+hospice-pricer-api/target/
+*.jar
+*.class
+*.log
+
+# ═══════════════════════════════════════════════════════════════
+# COBOL build artifacts
+# ═══════════════════════════════════════════════════════════════
+hospice-pricer-cobol/build/*.exe
+hospice-pricer-cobol/build/*.dll
+hospice-pricer-cobol/build/*.cbl
+hospice-pricer-cobol/build/copy/*.cpy
+
+# COBOL runtime output
+hospice-pricer-cobol/run/BILLFILE
+hospice-pricer-cobol/run/PROVFILE
+hospice-pricer-cobol/run/CBSAFILE
+hospice-pricer-cobol/run/RATEFILE
+
+# ═══════════════════════════════════════════════════════════════
+# IDE / Editor
+# ═══════════════════════════════════════════════════════════════
+.idea/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+.factorypath
+*.swp
+*~
+
+# ═══════════════════════════════════════════════════════════════
+# OS
+# ═══════════════════════════════════════════════════════════════
+.DS_Store
+Thumbs.db
+Desktop.ini
